@@ -1,6 +1,7 @@
 <template>
   <div class="home">
-    <keep-alive>
+    <TextDisplay :msg="msg" />
+    <!-- <keep-alive>
       <TextDisplay
         :msg="msg"
         @hook:beforeCreate="childHookLogs('CHILD: BEFORE CREATE')"
@@ -12,7 +13,7 @@
         @hook:activated="childHookLogs('CHILD: ACTIVATED')"
         @hook:deactivated="childHookLogs('CHILD: DEACTIVATED')"
       />
-    </keep-alive>
+    </keep-alive> -->
     <input type="text" v-model="msg" />
     <button @click="msg = ''">Reset</button>
     <br />
@@ -28,7 +29,7 @@
 
 <script>
 import TextDisplay from '@/components/TextDisplay.vue';
-import { httpClient } from '@/services/httpClient.js';
+import { mapGetters, mapActions, mapMutations } from 'vuex';
 
 export default {
   name: 'Home',
@@ -38,7 +39,7 @@ export default {
   data() {
     return {
       msg: 'Lifecycle Hooks in Vue!',
-      todos: []
+      timer: null
     };
   },
 
@@ -48,6 +49,18 @@ export default {
 
   created() {
     console.log('CREATED: state is', this.$data, 'DOM is', this.$el);
+
+    // console.time();
+
+    // this.fetchTodos();
+
+    // this.$once('hook:mounted', () => {
+    //   console.log('MOUNTED: DOM is', this.$el);
+    // });
+
+    // this.timer = setInterval(() => {
+    //   console.log('TIMER');
+    // }, 300);
   },
 
   beforeMount() {
@@ -56,24 +69,30 @@ export default {
 
   mounted() {
     console.log('MOUNTED: DOM is', this.$el);
-    this.$nextTick(function() {
-      console.log('All child components have been mounted.');
-      // throw new Error('error in mounted hook');
-    });
+
+    // console.timeEnd();
+
+    // this.$nextTick(function() {
+    //   console.log('All child components have been mounted.');
+    //   // throw new Error('error in mounted hook');
+    // });
   },
 
   beforeUpdate() {
-    console.log('BEFORE UPDATE:', this.msg);
+    console.log('BEFORE UPDATE');
   },
 
   updated() {
-    console.log('UPDATED:', this.msg);
+    console.log('UPDATED');
   },
 
   beforeDestroy() {
-    this.msg = '';
-    this.todos = [];
-    console.log('BEFORE DESTROY:', this.msg, this.todos);
+    console.log('BEFORE DESTROY');
+
+    // clearInterval(this.timer);
+
+    // this.todos = [];
+    // console.log('BEFORE DESTROY:', this.todos);
   },
 
   destroyed() {
@@ -86,21 +105,9 @@ export default {
   },
 
   methods: {
-    fetchTodos() {
-      return new Promise((resolve, reject) => {
-        httpClient.get(`todos`).then(
-          response => {
-            this.todos = response.data;
-            this.loading = false;
-            resolve(response.data);
-          },
-          error => {
-            this.loading = false;
-            reject(error);
-          }
-        );
-      });
-    },
+    ...mapActions('todo', ['fetchTodos']),
+    ...mapMutations('todo', ['SET_TODOS']),
+
     throwErr(errMsg) {
       throw new Error(errMsg);
       // This error will not be handled via the errorCaptured hook.
@@ -108,6 +115,18 @@ export default {
     childHookLogs(msg, errMsg) {
       console.log(msg);
       if (errMsg) this.throwErr(errMsg);
+    }
+  },
+
+  computed: {
+    ...mapGetters('todo', ['get_todos']),
+    todos: {
+      get() {
+        return this.get_todos;
+      },
+      set(value) {
+        this.SET_TODOS(value);
+      }
     }
   }
 };
