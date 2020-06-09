@@ -9,7 +9,7 @@
       />
     </keep-alive>
     <input type="text" v-model="msg" />
-    <button @click="msg = ''">Reset</button>
+    <button @click="resetMsg">Reset</button>
     <button @click="throwErr('error from button!')">
       Click to throw error!
     </button>
@@ -27,10 +27,10 @@ export default {
   },
   data() {
     return {
-      msg: 'Lifecycle Hooks in Vue!',
-      err: ''
+      msg: 'Lifecycle Hooks in Vue!'
     };
   },
+
   beforeCreate() {
     console.log('I am yet to be created, state is', this.msg);
   },
@@ -55,6 +55,7 @@ export default {
   },
   beforeDestroy() {
     console.log('I am yet to be destroyed.');
+    this.resetMsg();
   },
   destroyed() {
     console.log('Its over! RIP');
@@ -63,6 +64,7 @@ export default {
     console.error('From errorCaptured:', err, component, details);
     return false;
   },
+
   methods: {
     throwErr(errMsg) {
       throw new Error(errMsg);
@@ -71,6 +73,9 @@ export default {
     childHookLogs(msg, errMsg) {
       console.log(msg);
       if (errMsg) this.throwErr(errMsg);
+    },
+    resetMsg() {
+      this.msg = '';
     }
   }
 };
