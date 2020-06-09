@@ -3,21 +3,26 @@
     <keep-alive>
       <TextDisplay
         :msg="msg"
-        @hook:created="childHookLogs('Child is created')"
-        @hook:activated="childHookLogs('Child is activated')"
-        @hook:deactivated="childHookLogs('Child is deactivated')"
+        @hook:beforeCreate="childHookLogs('CHILD: BEFORE CREATE')"
+        @hook:created="childHookLogs('CHILD: CREATED')"
+        @hook:beforeMount="childHookLogs('CHILD: BEFORE MOUNT')"
+        @hook:mounted="childHookLogs('CHILD: MOUNTED')"
+        @hook:beforeDestroy="childHookLogs('CHILD: BEFORE DESTROY')"
+        @hook:destroyed="childHookLogs('CHILD: DESTROYED')"
+        @hook:activated="childHookLogs('CHILD: ACTIVATED')"
+        @hook:deactivated="childHookLogs('CHILD: DEACTIVATED')"
       />
     </keep-alive>
     <input type="text" v-model="msg" />
-    <button @click="resetMsg">Reset</button>
+    <button @click="msg = ''">Reset</button>
     <br />
     <button @click="throwErr('error from button!')">
       Click to throw error!
     </button>
-    <!-- <button @click="fetchTodos">Fetch todos</button>
+    <button @click="fetchTodos">Fetch todos</button>
     <div class="todo" v-for="todo in todos" :key="todo.id">
       {{ todo.title }}
-    </div> -->
+    </div>
   </div>
 </template>
 
@@ -38,44 +43,45 @@ export default {
   },
 
   beforeCreate() {
-    console.log('I am yet to be created, state is', this.msg);
+    console.log('BEFORE CREATE: state is', this.$data);
   },
 
   created() {
-    console.log('I am created, state is now', this.$data, 'DOM is', this.$el);
+    console.log('CREATED: state is', this.$data, 'DOM is', this.$el);
   },
 
   beforeMount() {
-    console.log('I am yet to be mounted, DOM is', this.$el);
+    console.log('BEFORE MOUNT: DOM is', this.$el);
   },
 
   mounted() {
-    console.log('I am mounted, DOM is', this.$el);
+    console.log('MOUNTED: DOM is', this.$el);
     this.$nextTick(function() {
       console.log('All child components have been mounted.');
-      // throw new Error('I was born to error on mounted');
+      // throw new Error('error in mounted hook');
     });
   },
 
   beforeUpdate() {
-    console.log('I am yet to be updated');
+    console.log('BEFORE UPDATE:', this.msg);
   },
 
   updated() {
-    console.log('I have updated myself!');
+    console.log('UPDATED:', this.msg);
   },
 
   beforeDestroy() {
-    console.log('I am yet to be destroyed.');
-    this.resetMsg();
+    this.msg = '';
+    this.todos = [];
+    console.log('BEFORE DESTROY:', this.msg, this.todos);
   },
 
   destroyed() {
-    console.log('Its over! RIP');
+    console.log('DESTROYED');
   },
 
   errorCaptured(err, component, details) {
-    console.error('From errorCaptured:', err, component, details);
+    console.log('ERROR CAPTURED:', err, component, details);
     return false;
   },
 
@@ -102,9 +108,6 @@ export default {
     childHookLogs(msg, errMsg) {
       console.log(msg);
       if (errMsg) this.throwErr(errMsg);
-    },
-    resetMsg() {
-      this.msg = '';
     }
   }
 };
